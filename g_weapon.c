@@ -368,7 +368,7 @@ void fire_blaster (edict_t *self, vec3_t start, vec3_t dir, int damage, int spee
 		VectorMA (bolt->s.origin, -10, dir, bolt->s.origin);
 		bolt->touch (bolt, tr.ent, NULL, NULL);
 	}
-	VectorScale(bolt->velocity, -.5, dir);
+	VectorScale(bolt->velocity, -.3, dir);
 	VectorAdd(self->velocity,dir,self->velocity);
 }	
 
