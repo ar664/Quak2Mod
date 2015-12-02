@@ -600,6 +600,36 @@ void rocket_touch (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *su
 	G_FreeEdict (ent);
 }
 
+void rocket_think(edict_t *ent)
+{
+	vec3_t forward;//, rocketAngle;
+	vec3_t tilt;
+	vec3_t maxTilt = {2.0,2.0,2.0};
+	int speed = 50;
+	int i;
+	if (!ent->owner)
+	{
+		G_FreeEdict(ent);
+	}
+	AngleVectors (ent->owner->client->v_angle, forward, NULL, NULL);
+	VectorScale(forward, 3, tilt);
+	for (i = 0; i < 3; i++)
+	{
+		if (abs(tilt[i]) > abs(maxTilt[i]))
+		{
+			tilt[i] > 0 ? (tilt[i] = maxTilt[i]) : (tilt[i] = -maxTilt[i]);
+		}
+	}
+
+	//gi.centerprintf(ent->owner,"Rocket Thinking %f %f %f ", tilt[0], tilt[1], tilt[2]);
+	gi.centerprintf(ent->owner,"Rocket Velocity %f %f %f ", ent->velocity[0],ent->velocity[1], ent->velocity[2]);
+	VectorAdd(ent->velocity,tilt, ent->velocity);
+	//VectorScale(ent->velocity, 1/speed, rocketAngle);
+	vectoangles(ent->velocity, ent->s.angles);
+	ent->nextthink = level.time + 0.01;
+	//VectorMA(ent->owner->s.angles, .1, maxTilt, tilt);
+}
+
 void fire_rocket (edict_t *self, vec3_t start, vec3_t dir, int damage, int speed, float damage_radius, int radius_damage)
 {
 	edict_t	*rocket;
@@ -618,8 +648,9 @@ void fire_rocket (edict_t *self, vec3_t start, vec3_t dir, int damage, int speed
 	rocket->s.modelindex = gi.modelindex ("models/objects/rocket/tris.md2");
 	rocket->owner = self;
 	rocket->touch = rocket_touch;
-	rocket->nextthink = level.time + 8000/speed;
-	rocket->think = G_FreeEdict;
+	//rocket->nextthink = level.time + 8000/speed;
+	rocket->nextthink = level.time + 0.01;
+	rocket->think = rocket_think;
 	rocket->dmg = damage;
 	rocket->radius_dmg = radius_damage;
 	rocket->dmg_radius = damage_radius;

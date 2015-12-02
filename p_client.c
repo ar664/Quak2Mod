@@ -1567,7 +1567,7 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 
 	level.current_entity = ent;
 	client = ent->client;
-	gi.centerprintf(ent,"Hello");
+	//gi.centerprintf(ent,"Hello");
 	if (level.intermissiontime)
 	{
 		client->ps.pmove.pm_type = PM_FREEZE;

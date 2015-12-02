@@ -1,0 +1,2 @@
+copy /Y "C:\Program Files (x86)\Steam\SteamApps\common\Quake 2\src\gamex86.dll" "C:\Program Files (x86)\Steam\SteamApps\common\Quake 2\baseq2\"
+"C:\Program Files (x86)\Steam\SteamApps\common\Quake 2\r1q2.exe"
