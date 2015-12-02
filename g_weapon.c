@@ -261,6 +261,14 @@ void fire_bullet (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int ki
 }
 
 
+void Unstun(edict_t *ent)
+{
+	gi.bprintf(PRINT_MEDIUM, "Unstunned");
+	ent->owner->deadflag = false;
+	G_FreeEdict(ent);
+}
+
+
 /*
 =================
 fire_shotgun
@@ -270,10 +278,43 @@ Shoots shotgun pellets.  Used by shotgun and super shotgun.
 */
 void fire_shotgun (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick, int hspread, int vspread, int count, int mod)
 {
+	
 	int		i;
+	int damageRadius = hspread;
+	float playerdistance;
+	vec3_t v;
+	edict_t *ent, *stunList;
+	
+	if (self->deadflag)
+	{
+		return;
+	}
 
-	for (i = 0; i < count; i++)
-		fire_lead (self, start, aimdir, damage, kick, TE_SHOTGUN, hspread, vspread, mod);
+	stunList = (edict_t*) malloc(sizeof(edict_t)*globals.num_edicts);
+	ent = &g_edicts[0];
+	for (i=0 ; i<globals.num_edicts ; i++, ent++)
+	{
+		if (!ent->inuse || !ent->client) //|| ent == self )
+		{
+			continue;
+		}
+		VectorSubtract (ent->s.origin, self->s.origin, v);
+		playerdistance = VectorLength (v);
+		
+		if (playerdistance < damageRadius)
+		{
+			ent->deadflag = true;
+			stunList->owner = ent;
+			stunList->nextthink = level.time + 5;
+			stunList->think = Unstun;
+			gi.linkentity(stunList);
+			stunList++;
+			gi.centerprintf(ent, "You are stunned");
+		}
+	}
+
+	//for (i = 0; i < count; i++)
+		//fire_lead (self, start, aimdir, damage, kick, TE_SHOTGUN, hspread, vspread, mod);
 }
 
 
