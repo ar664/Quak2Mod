@@ -1567,6 +1567,8 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 
 	level.current_entity = ent;
 	client = ent->client;
+	ent->flags |= FL_SWIM;
+	//ent->movetype = MOVETYPE_FLY;
 	//gi.centerprintf(ent,"Hello");
 	if (level.intermissiontime)
 	{
@@ -1599,8 +1601,8 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 			client->ps.pmove.pm_type = PM_DEAD;
 		else
 			client->ps.pmove.pm_type = PM_NORMAL;
-
-		client->ps.pmove.gravity = 0;
+		//ent->movetype = MOVETYPE_STEP;
+		client->ps.pmove.gravity = 9;
 		pm.s = client->ps.pmove;
 
 		for (i=0 ; i<3 ; i++)
@@ -1648,7 +1650,7 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 
 		ent->viewheight = pm.viewheight;
 		ent->waterlevel = 3;
-		ent->watertype = pm.watertype;
+		ent->watertype = CONTENTS_WATER;
 		ent->groundentity = pm.groundentity;
 		if (pm.groundentity)
 			ent->groundentity_linkcount = pm.groundentity->linkcount;
