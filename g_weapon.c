@@ -531,9 +531,9 @@ void fire_grenade (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int s
 	grenade->s.modelindex = gi.modelindex ("models/objects/grenade/tris.md2");
 	grenade->owner = self;
 	grenade->touch = Grenade_Touch;
-	grenade->nextthink = level.time + timer;
-	//grenade->think = Grenade_Explode;
-	grenade->dmg = damage;
+	//grenade->nextthink = level.time + timer;
+	grenade->think = Grenade_Explode;
+	grenade->dmg = damage + 1;
 	grenade->dmg_radius = damage_radius;
 	grenade->classname = "grenade";
 
