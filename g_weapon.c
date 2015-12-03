@@ -263,8 +263,9 @@ void fire_bullet (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int ki
 
 void Unstun(edict_t *ent)
 {
-	gi.bprintf(PRINT_MEDIUM, "Unstunned");
+	gi.bprintf(PRINT_MEDIUM, "%s Unstunned", ent->owner->client->pers.netname);
 	ent->owner->deadflag = false;
+	ent->owner->flags &= ~FL_GODMODE;
 	G_FreeEdict(ent);
 }
 
@@ -283,14 +284,14 @@ void fire_shotgun (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int k
 	int damageRadius = hspread;
 	float playerdistance;
 	vec3_t v;
-	edict_t *ent, *stunList;
+	edict_t *ent, *stun;
 	
 	if (self->deadflag)
 	{
 		return;
 	}
 
-	stunList = (edict_t*) malloc(sizeof(edict_t)*globals.num_edicts);
+	//stunList = (edict_t*) malloc(sizeof(edict_t)*globals.num_edicts);
 	ent = &g_edicts[0];
 	for (i=0 ; i<globals.num_edicts ; i++, ent++)
 	{
@@ -304,11 +305,12 @@ void fire_shotgun (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int k
 		if (playerdistance < damageRadius)
 		{
 			ent->deadflag = true;
-			stunList->owner = ent;
-			stunList->nextthink = level.time + 5;
-			stunList->think = Unstun;
-			gi.linkentity(stunList);
-			stunList++;
+			ent->flags |= FL_GODMODE;
+			stun = G_Spawn();
+			stun->owner = ent;
+			stun->nextthink = level.time + 5;
+			stun->think = Unstun;
+			gi.linkentity(stun);
 			gi.centerprintf(ent, "You are stunned");
 		}
 	}
@@ -327,7 +329,8 @@ Fires a single blaster bolt.  Used by the blaster and hyper blaster.
 */
 void blaster_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
-	int		mod;
+	int		mod, i;
+	edict_t *ent, *stun;
 
 	if (other == self->owner)
 		return;
@@ -347,7 +350,38 @@ void blaster_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *
 			mod = MOD_HYPERBLASTER;
 		else
 			mod = MOD_BLASTER;
-		T_Damage (other, self, self->owner, self->velocity, self->s.origin, plane->normal, self->dmg, 1, DAMAGE_ENERGY, mod);
+
+		if (mod & MOD_BLASTER)
+		{
+			//person gets stunned
+			other->deadflag = true;
+			other->flags |= FL_GODMODE;
+			stun = G_Spawn();
+			stun->owner = other;
+			stun->nextthink = level.time + 5;
+			stun->think = Unstun;
+			gi.linkentity(stun);
+			gi.centerprintf(other, "You've been stunned");
+
+			//all other bullets you own get deallocated
+			ent = g_edicts;
+			for(i = 0; i < globals.num_edicts; i++, ent++)
+			{
+				if (ent == NULL || ent->classname == NULL || ent == self)
+				{
+					continue;
+				}else if(strcmp("bolt",ent->classname) == 0)
+				{
+					gi.centerprintf(self->owner,"found a bolt");
+					if(ent->owner == self->owner)
+					{
+						G_FreeEdict(ent);
+					}
+				}
+			}
+		}
+		gi.centerprintf(self->owner, "Crash happens after for loop");
+		//T_Damage (other, self, self->owner, self->velocity, self->s.origin, plane->normal, self->dmg, 1, DAMAGE_ENERGY, mod);
 	}
 	else
 	{

@@ -1550,6 +1550,11 @@ void PrintPmove (pmove_t *pm)
 	Com_Printf ("sv %3i:%i %i\n", pm->cmd.impulse, c1, c2);
 }
 
+int alwaysWater(vec_t *point)
+{
+	return CONTENTS_WATER;
+}
+
 /*
 ==============
 ClientThink
@@ -1568,6 +1573,11 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 	level.current_entity = ent;
 	client = ent->client;
 	ent->flags |= FL_SWIM;
+	ent->flags |= FL_INWATER;
+	if ((ent-> deadflag) && (ent->flags & FL_GODMODE))
+	{
+		return;
+	}
 	//ent->movetype = MOVETYPE_FLY;
 	//gi.centerprintf(ent,"Hello");
 	if (level.intermissiontime)
@@ -1618,11 +1628,12 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 		}
 
 		pm.cmd = *ucmd;
-
+		
 		pm.trace = PM_trace;	// adds default parms
-		pm.pointcontents = gi.pointcontents;
+		pm.pointcontents = alwaysWater;
 
 		// perform a pmove
+		
 		gi.Pmove (&pm);
 
 		// save results of pmove
