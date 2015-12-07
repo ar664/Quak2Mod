@@ -401,9 +401,12 @@ void blaster_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface_t *
 void fire_blaster (edict_t *self, vec3_t start, vec3_t dir, int damage, int speed, int effect, qboolean hyper)
 {
 	edict_t	*bolt;
+	vec3_t kickDir;
 	trace_t	tr;
 
+	//gi.centerprintf(self, "Before Dir[0]: %f, Dir[1]: %f, Dir[2]: %f", dir[0], dir[1], dir[2]);
 	VectorNormalize (dir);
+	//gi.centerprintf(self, "After Dir[0]: %f, Dir[1]: %f, Dir[2]: %f", dir[0], dir[1], dir[2]);
 
 	bolt = G_Spawn();
 	bolt->svflags = SVF_DEADMONSTER;
@@ -443,8 +446,9 @@ void fire_blaster (edict_t *self, vec3_t start, vec3_t dir, int damage, int spee
 		VectorMA (bolt->s.origin, -10, dir, bolt->s.origin);
 		bolt->touch (bolt, tr.ent, NULL, NULL);
 	}
-	VectorScale(bolt->velocity, -.3, dir);
-	VectorAdd(self->velocity,dir,self->velocity);
+	VectorCopy(dir, kickDir);
+	VectorScale(bolt->velocity, -.3, kickDir);
+	VectorAdd(self->velocity,kickDir,self->velocity);
 }	
 
 

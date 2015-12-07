@@ -814,6 +814,7 @@ void Blaster_Fire (edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, in
 
 	fire_blaster (ent, start, forward, damage, 1000, effect, hyper);
 	VectorCopy(start,oldstart);
+	//gi.centerprintf(ent, "Start[0]: %f, Start[1]: %f, Start[2]: %f", start[0], start[1], start[2]);
 	if(!hyper)
 	{
 		for(i = 0; i < 4; i++)
@@ -821,12 +822,14 @@ void Blaster_Fire (edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, in
 			VectorCopy(oldstart,start);
 			switch(i)
 			{
-				case(0): start[1] += seperation; start[0] += seperation; break;
-				case(1): start[1] += seperation; start[0] -= seperation; break;
-				case(2): start[1] -= seperation; start[0] += seperation; break;
-				case(3): start[1] -= seperation; start[0] -= seperation; break;
-				default: break;
+				case(0): start[1] += seperation; start[2] += seperation; break;
+				case(1): start[1] += seperation; start[2] -= seperation; break;
+				case(2): start[1] -= seperation; start[2] += seperation; break;
+				case(3): start[1] -= seperation; start[2] -= seperation; break;
+				default: continue;
 			}
+			//gi.centerprintf(ent, "Start[0]: %f, Start[1]: %f, Start[2]: %f", start[0], start[1], start[2]);
+			gi.centerprintf(ent, "Dir[0]: %f, Dir[1]: %f, Dir[2]: %f", forward[0], forward[1], forward[2]);
 			fire_blaster (ent, start, forward, damage, 1000, effect, hyper);
 		}
 	}
