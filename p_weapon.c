@@ -799,12 +799,13 @@ void Blaster_Fire (edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, in
 	vec3_t	forward, right;
 	vec3_t	start, oldstart;
 	vec3_t	offset;
+	vec3_t	left, up, down, startChange;
 	int i;
 	int seperation = 30;
 
 	if (is_quad)
 		damage *= 4;
-	AngleVectors (ent->client->v_angle, forward, right, NULL);
+	AngleVectors (ent->client->v_angle, forward, right, up);
 	VectorSet(offset, 24, 8, ent->viewheight-8);
 	VectorAdd (offset, g_offset, offset);
 	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
@@ -813,7 +814,14 @@ void Blaster_Fire (edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, in
 	ent->client->kick_angles[0] = -1;
 
 	fire_blaster (ent, start, forward, damage, 1000, effect, hyper);
+	//gi.centerprintf(ent, "Forward[0]: %f, Forward[1]: %f, Forward[2]: %f", forward[0], forward[1], forward[2]);
 	VectorCopy(start,oldstart);
+	//gi.centerprintf(ent, "Right[0]: %f, Right[1]: %f, Right[2]: %f", right[0], right[1], right[2]);
+	VectorNegate(right, left);
+	//gi.centerprintf(ent, "Left[0]: %f, Left[1]: %f, Left[2]: %f", left[0], left[1], left[2]);
+	//gi.centerprintf(ent, "Up[0]: %f, Up[1]: %f, Up[2]: %f", up[0], up[1], up[2]);
+	VectorNegate(up, down);
+	//gi.centerprintf(ent, "Down[0]: %f, Down[1]: %f, Down[2]: %f", down[0], down[1], down[2]);
 	//gi.centerprintf(ent, "Start[0]: %f, Start[1]: %f, Start[2]: %f", start[0], start[1], start[2]);
 	if(!hyper)
 	{
@@ -822,14 +830,17 @@ void Blaster_Fire (edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, in
 			VectorCopy(oldstart,start);
 			switch(i)
 			{
-				case(0): start[1] += seperation; start[2] += seperation; break;
-				case(1): start[1] += seperation; start[2] -= seperation; break;
-				case(2): start[1] -= seperation; start[2] += seperation; break;
-				case(3): start[1] -= seperation; start[2] -= seperation; break;
+				case(0): VectorAdd(up,right,startChange); break;
+				case(1): VectorAdd(up,left,startChange); break;
+				case(2): VectorAdd(down,right,startChange); break;
+				case(3): VectorAdd(down,left,startChange); break;
 				default: continue;
 			}
-			//gi.centerprintf(ent, "Start[0]: %f, Start[1]: %f, Start[2]: %f", start[0], start[1], start[2]);
-			gi.centerprintf(ent, "Dir[0]: %f, Dir[1]: %f, Dir[2]: %f", forward[0], forward[1], forward[2]);
+			VectorMA(forward, 1, startChange, startChange);
+			P_ProjectSource (ent->client, ent->s.origin, offset, startChange, right, start);
+			//gi.centerprintf(ent, "startChange[0]: %f, startChange[1]: %f, startChange[2]: %f", startChange[0], startChange[1], startChange[2]);
+			//gi.centerprintf(ent, "%d Start[0]: %f, Start[1]: %f, Start[2]: %f", i, start[0], start[1], start[2]);
+			//gi.centerprintf(ent, "Dir[0]: %f, Dir[1]: %f, Dir[2]: %f", forward[0], forward[1], forward[2]);
 			fire_blaster (ent, start, forward, damage, 1000, effect, hyper);
 		}
 	}
