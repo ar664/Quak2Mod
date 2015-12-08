@@ -304,6 +304,8 @@ void fire_shotgun (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int k
 		
 		if (playerdistance < damageRadius)
 		{
+			T_Damage (ent, world, world, vec3_origin, self->s.origin, vec3_origin, 25, 0, DAMAGE_NO_KNOCKBACK, MOD_UNKNOWN);
+			if(ent->health < 1) continue;
 			ent->deadflag = true;
 			ent->flags |= FL_GODMODE;
 			stun = G_Spawn();
@@ -312,8 +314,13 @@ void fire_shotgun (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int k
 			stun->think = Unstun;
 			gi.linkentity(stun);
 			gi.centerprintf(ent, "You are stunned");
+			gi.WriteByte (svc_temp_entity);
+			gi.WriteByte (TE_ROCKET_EXPLOSION);
+			gi.WritePosition (ent->s.origin);
+			gi.multicast (ent->s.origin, MULTICAST_PHS);
 		}
 	}
+
 
 	//for (i = 0; i < count; i++)
 		//fire_lead (self, start, aimdir, damage, kick, TE_SHOTGUN, hspread, vspread, mod);

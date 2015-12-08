@@ -1234,10 +1234,15 @@ void weapon_shotgun_fire (edict_t *ent)
 		fire_shotgun (ent, start, forward, damage, kick, 500, 500, DEFAULT_SHOTGUN_COUNT, MOD_SHOTGUN);
 
 	// send muzzle flash
-	gi.WriteByte (svc_muzzleflash);
-	gi.WriteShort (ent-g_edicts);
-	gi.WriteByte (MZ_SHOTGUN | is_silenced);
-	gi.multicast (ent->s.origin, MULTICAST_PVS);
+	//gi.WriteByte (svc_muzzleflash);
+	//gi.WriteShort (ent-g_edicts);
+	//gi.WriteByte (MZ_SHOTGUN | is_silenced);
+	//gi.multicast (ent->s.origin, MULTICAST_PVS);
+
+	gi.WriteByte (svc_temp_entity);
+	gi.WriteByte (TE_ROCKET_EXPLOSION);
+	gi.WritePosition (ent->s.origin);
+	gi.multicast (ent->s.origin, MULTICAST_PHS);
 
 	ent->client->ps.gunframe++;
 	PlayerNoise(ent, start, PNOISE_WEAPON);
