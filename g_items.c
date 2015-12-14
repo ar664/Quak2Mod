@@ -563,6 +563,14 @@ qboolean Pickup_Health (edict_t *ent, edict_t *other)
 			SetRespawn (ent, 30);
 	}
 
+	if(other->air_finished > level.time)
+	{
+		other->air_finished += 5;
+	} else
+	{
+		other->air_finished = level.time + 12;
+	}
+
 	return true;
 }
 
@@ -2092,6 +2100,27 @@ tank commander's head
 /* precache */ "items/s_health.wav items/n_health.wav items/l_health.wav items/m_health.wav"
 	},
 
+//Air Anthony
+	{
+		NULL,
+		Pickup_Health,
+		NULL,
+		NULL,
+		NULL,
+		"items/pkup.wav",
+		NULL, 0,
+		NULL,
+		"p_rebreather",
+		"Air",
+		3,
+		0,
+		NULL,
+		0,
+		0,
+		NULL,
+		0,
+		""
+	},
 	// end of list marker
 	{NULL}
 };

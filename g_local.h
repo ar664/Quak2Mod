@@ -306,6 +306,7 @@ typedef struct
 	int			sound2_entity_framenum;
 
 	int			pic_health;
+	int			pic_air;
 
 	int			total_secrets;
 	int			found_secrets;

@@ -761,6 +761,18 @@ char *dm_statusbar =
   "xv 64 "
   "stat_string 16 "
 "endif "
+
+//Air
+"if 18 "
+  "yb -48 "
+  "xr -122 "
+  "string2 \"AIR\" "
+  "xr -58 "
+  "num 2 19 "
+  "xr -24 "
+  "pic 18 "
+"endif "
+
 ;
 
 
@@ -828,6 +840,7 @@ void SP_worldspawn (edict_t *ent)
 	// help icon for statusbar
 	gi.imageindex ("i_help");
 	level.pic_health = gi.imageindex ("i_health");
+	level.pic_air = gi.imageindex ("p_rebreather");
 	gi.imageindex ("help");
 	gi.imageindex ("field_3");
 

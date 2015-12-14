@@ -989,6 +989,9 @@ typedef enum
 #define	STAT_FLASHES			15		// cleared each frame, 1 = health, 2 = armor
 #define STAT_CHASE				16
 #define STAT_SPECTATOR			17
+#define STAT_AIR_ICON			18		//Anthony UI
+#define STAT_AIR				19
+#define STAT_AIR_STRING			20
 
 #define	MAX_STATS				32
 

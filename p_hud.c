@@ -362,6 +362,20 @@ void G_SetStats (edict_t *ent)
 	int			power_armor_type;
 
 	//
+	// Air Anthony
+	//
+	if ( ent->air_finished > level.time )
+	{
+		ent->client->ps.stats[STAT_AIR_ICON] = level.pic_air;
+		ent->client->ps.stats[STAT_AIR] = (int) abs(ent->air_finished - level.time);
+	} else
+	{
+		ent->client->ps.stats[STAT_AIR_ICON] = level.pic_air;
+		ent->client->ps.stats[STAT_AIR] = 0;
+	}
+	//ent->client->ps.stats[STAT_AIR_STRING] = CS_ITEMS+ITEM_INDEX(FindItem("Air"));
+
+	//
 	// health
 	//
 	ent->client->ps.stats[STAT_HEALTH_ICON] = level.pic_health;
