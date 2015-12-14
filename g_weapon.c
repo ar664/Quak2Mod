@@ -517,7 +517,10 @@ static void Grenade_Explode (edict_t *ent)
 	}
 	gi.WritePosition (origin);
 	gi.multicast (ent->s.origin, MULTICAST_PHS);
-
+	if(FindItem("Health"))
+	{
+		Drop_Item_Here( ent->s.origin, FindItem("Health"));
+	}
 	G_FreeEdict (ent);
 }
 
@@ -675,6 +678,11 @@ void rocket_touch (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *su
 
 	T_RadiusDamage(ent, ent->owner, ent->radius_dmg, other, ent->dmg_radius, MOD_R_SPLASH);
 
+	if( FindItem("Health") )
+	{
+		Drop_Item_Here(ent->s.origin, FindItem("Health"));
+	}
+
 	gi.WriteByte (svc_temp_entity);
 	if (ent->waterlevel)
 		gi.WriteByte (TE_ROCKET_EXPLOSION_WATER);
@@ -682,7 +690,6 @@ void rocket_touch (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *su
 		gi.WriteByte (TE_ROCKET_EXPLOSION);
 	gi.WritePosition (origin);
 	gi.multicast (ent->s.origin, MULTICAST_PHS);
-
 	G_FreeEdict (ent);
 }
 
@@ -691,6 +698,9 @@ void rocket_think(edict_t *ent)
 	vec3_t forward;//, rocketAngle;
 	vec3_t tilt;
 	vec3_t maxTilt = {2.0,2.0,2.0};
+	//Bubble vec3_t's
+	vec3_t start, end, length;
+
 	int speed = 50;
 	int i;
 	if (!ent->owner)
@@ -708,12 +718,22 @@ void rocket_think(edict_t *ent)
 	}
 
 	//gi.centerprintf(ent->owner,"Rocket Thinking %f %f %f ", tilt[0], tilt[1], tilt[2]);
-	gi.centerprintf(ent->owner,"Rocket Velocity %f %f %f ", ent->velocity[0],ent->velocity[1], ent->velocity[2]);
+	//gi.centerprintf(ent->owner,"Rocket Velocity %f %f %f ", ent->velocity[0],ent->velocity[1], ent->velocity[2]);
 	VectorAdd(ent->velocity,tilt, ent->velocity);
 	//VectorScale(ent->velocity, 1/speed, rocketAngle);
 	vectoangles(ent->velocity, ent->s.angles);
 	ent->nextthink = level.time + 0.01;
-	//VectorMA(ent->owner->s.angles, .1, maxTilt, tilt);
+
+	//Bubble Math & Drop Health Math
+	VectorCopy(ent->s.origin, start);
+	VectorMA(ent->s.origin, 1, ent->velocity, end);
+	VectorCopy(ent->s.origin, length);
+
+	gi.WriteByte (svc_temp_entity);
+	gi.WriteByte (TE_BUBBLETRAIL);
+	gi.WritePosition (start);
+	gi.WritePosition (end);
+	gi.multicast (length, MULTICAST_PVS);
 }
 
 void fire_rocket (edict_t *self, vec3_t start, vec3_t dir, int damage, int speed, float damage_radius, int radius_damage)
@@ -888,6 +908,7 @@ void bfg_explode (edict_t *self)
 	self->nextthink = level.time + FRAMETIME;
 	self->s.frame++;
 	if (self->s.frame == 5)
+		Drop_Item(ent, FindItem("Health"));
 		self->think = G_FreeEdict;
 }
 

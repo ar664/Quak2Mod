@@ -829,6 +829,39 @@ static void drop_make_touchable (edict_t *ent)
 	}
 }
 
+edict_t *Drop_Item_Here( vec3_t pos, gitem_t *item)
+{
+	edict_t *dropped;
+
+	dropped = G_Spawn();
+	dropped->classname = item->classname;
+	dropped->item = item;
+	dropped->spawnflags = DROPPED_ITEM;
+	dropped->s.effects = item->world_model_flags;
+	dropped->s.renderfx = RF_GLOW;
+	VectorSet (dropped->mins, -15, -15, -15);
+	VectorSet (dropped->maxs, 15, 15, 15);
+	gi.setmodel (dropped, dropped->item->world_model);
+	dropped->solid = SOLID_TRIGGER;
+	dropped->movetype = MOVETYPE_TOSS;  
+	dropped->touch = drop_temp_touch;
+	dropped->owner = NULL;
+
+	VectorCopy(pos, dropped->s.origin);
+
+	dropped->think = drop_make_touchable;
+	dropped->nextthink = level.time + 1;
+	if(!strcmp(item->pickup_name, "Health"))
+	{
+		dropped->count = 2;
+		dropped->style = HEALTH_IGNORE_MAX;
+	}
+
+	gi.linkentity(dropped);
+
+	return dropped;
+}
+
 edict_t *Drop_Item (edict_t *ent, gitem_t *item)
 {
 	edict_t	*dropped;
@@ -2086,7 +2119,7 @@ tank commander's head
 		NULL,
 		NULL,
 		"items/pkup.wav",
-		NULL, 0,
+		"models/items/healing/stimpack/tris.md2", 0,
 		NULL,
 /* icon */		"i_health",
 /* pickup */	"Health",
