@@ -407,7 +407,8 @@ void SV_CalcBlend (edict_t *ent)
 
 	// add for contents
 	VectorAdd (ent->s.origin, ent->client->ps.viewoffset, vieworg);
-	contents = gi.pointcontents (vieworg);
+	contents = CONTENTS_WATER;
+	//contents = gi.pointcontents (vieworg);
 	if (contents & (CONTENTS_LAVA|CONTENTS_SLIME|CONTENTS_WATER) )
 		ent->client->ps.rdflags |= RDF_UNDERWATER;
 	else
@@ -418,7 +419,7 @@ void SV_CalcBlend (edict_t *ent)
 	else if (contents & CONTENTS_SLIME)
 		SV_AddBlend (0.0, 0.1, 0.05, 0.6, ent->client->ps.blend);
 	else if (contents & CONTENTS_WATER)
-		SV_AddBlend (0.5, 0.3, 0.2, 0.4, ent->client->ps.blend);
+		SV_AddBlend (0, 0, 0.4, 0.3, ent->client->ps.blend);
 
 	// add for powerups
 	if (ent->client->quad_framenum > level.framenum)
