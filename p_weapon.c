@@ -1260,7 +1260,7 @@ void Weapon_Shotgun (edict_t *ent)
 }
 
 
-void weapon_supershotgun_fire (edict_t *ent)
+/*void weapon_supershotgun_fire (edict_t *ent)
 {
 	vec3_t		start;
 	vec3_t		forward, right;
@@ -1303,6 +1303,143 @@ void weapon_supershotgun_fire (edict_t *ent)
 
 	if (! ( (int)dmflags->value & DF_INFINITE_AMMO ) )
 		ent->client->pers.inventory[ent->client->ammo_index] -= 2;
+}*/
+void shotgun_melee_touch(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
+{
+	vec3_t		origin;
+	int			n;
+
+	if (other == ent->owner)
+		return;
+
+	if (surf && (surf->flags & SURF_SKY))
+	{
+		G_FreeEdict (ent);
+		return;
+	}
+
+	if (ent->owner->client)
+		PlayerNoise(ent->owner, ent->s.origin, PNOISE_IMPACT);
+
+	// calculate position for the explosion entity
+	VectorMA (ent->s.origin, -0.02, ent->velocity, origin);
+
+	if (other->takedamage)
+	{
+		T_Damage (other, ent, ent->owner, ent->velocity, ent->s.origin, plane->normal, ent->dmg, 0, 0, MOD_ROCKET);
+	}
+	else
+	{
+		// don't throw any debris in net games
+		if (!deathmatch->value && !coop->value)
+		{
+			if ((surf) && !(surf->flags & (SURF_WARP|SURF_TRANS33|SURF_TRANS66|SURF_FLOWING)))
+			{
+				n = rand() % 5;
+				while(n--)
+					ThrowDebris (ent, "models/objects/debris2/tris.md2", 2, ent->s.origin);
+			}
+		}
+	}
+
+	//T_RadiusDamage(ent, ent->owner, ent->radius_dmg, other, ent->dmg_radius, MOD_R_SPLASH);
+}
+
+void shotgun_melee_think(edict_t *ent)
+{
+	vec3_t forward, up, right, down;
+	vec3_t currentAngle, angleMove, offset;
+	int distUp, distDown;
+	float speed = 0.25;
+	AngleVectors (ent->s.angles, forward, right, up);
+	VectorScale(up, -1, down);
+	VectorCopy(ent->s.angles, currentAngle);
+	//VectorAdd(up, forward, angleMove);
+	//gi.centerprintf(ent->owner,"Before: angleMove %f %f %f", angleMove[0], angleMove[1], angleMove[2]);
+	VectorSet(angleMove, -1, 0, 0);
+	VectorScale(angleMove, 1/speed, angleMove);
+	VectorSubtract(ent->s.angles, angleMove, ent->s.angles);
+	//gi.centerprintf(ent->owner,"After: angleMove %f %f %f", angleMove[0], angleMove[1], angleMove[2]);
+	//gi.centerprintf(ent->owner,"currentangle %f %f %f", currentAngle[0], currentAngle[1], currentAngle[2]);
+	//gi.centerprintf(ent->owner,"s.angles %f %f %f", ent->s.angles[0], ent->s.angles[1], ent->s.angles[2]);
+	VectorSet(offset, 8, 8, ent->viewheight-8);
+	if (ent->s.angles == down || ent->timestamp < level.time)
+	{
+		G_FreeEdict(ent);
+		return;
+	}
+	AngleVectors(ent->owner->s.angles, forward, right, NULL);
+	P_ProjectSource (ent->owner->client, ent->owner->s.origin, offset, forward, right, ent->s.origin);
+	VectorSet(ent->s.angles, ent->s.angles[0], ent->owner->s.angles[1], ent->owner->s.angles[2]);
+	ent->nextthink = level.time + 0.1;
+
+}
+
+extern void check_dodge (edict_t *self, vec3_t start, vec3_t dir, int speed);
+
+void super_shotgun_melee(edict_t *ent,  vec3_t start, vec3_t dir, vec3_t up, int damage, int speed)
+{
+	edict_t	*shotgun_melee;
+
+	shotgun_melee = G_Spawn();
+	VectorCopy (start, shotgun_melee->s.origin);
+	VectorCopy (dir, shotgun_melee->movedir);
+	VectorCopy(up, shotgun_melee->s.angles);
+	VectorScale (dir, 1/speed, shotgun_melee->velocity);
+	shotgun_melee->movetype = MOVETYPE_FLYMISSILE;
+	shotgun_melee->clipmask = MASK_SHOT;
+	shotgun_melee->solid = SOLID_BBOX;
+	shotgun_melee->s.effects |= EF_GRENADE;
+	VectorClear (shotgun_melee->mins);
+	VectorClear (shotgun_melee->maxs);
+	shotgun_melee->s.modelindex = gi.modelindex ("models/weapons/g_shotg2/tris.md2");
+	shotgun_melee->owner = ent;
+	shotgun_melee->touch = shotgun_melee_touch;
+	//shotgun_melee->nextthink = level.time + 8000/speed;
+	shotgun_melee->nextthink = level.time + 0.1;
+	shotgun_melee->think = shotgun_melee_think;
+	shotgun_melee->dmg = damage;
+	shotgun_melee->s.sound = gi.soundindex ("weapons/rockfly.wav");
+	shotgun_melee->classname = "shotgun_melee";
+	shotgun_melee->timestamp = level.time + 1;
+	if (ent->client)
+		check_dodge (ent, shotgun_melee->s.origin, dir, speed);
+
+	gi.linkentity (shotgun_melee);
+
+	ent->client->ps.gunframe++;
+	PlayerNoise(ent, start, PNOISE_WEAPON);
+	if (! ( (int)dmflags->value & DF_INFINITE_AMMO ) )
+		ent->client->pers.inventory[ent->client->ammo_index] -= 2;
+}
+
+void weapon_supershotgun_fire(edict_t *ent)
+{
+	vec3_t	offset, start;
+	vec3_t	forward, right, up;
+	int		damage;
+	float	damage_radius;
+	int		radius_damage;
+
+	damage = 100 + (int)(random() * 20.0);
+	radius_damage = 120;
+	damage_radius = 120;
+	if (is_quad)
+	{
+		damage *= 4;
+		radius_damage *= 4;
+	}
+
+	AngleVectors (ent->client->v_angle, forward, right, up);
+
+	VectorScale (forward, -2, ent->client->kick_origin);
+	ent->client->kick_angles[0] = -1;
+
+	VectorSet(offset, 8, 8, ent->viewheight-8);
+	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
+	
+	super_shotgun_melee (ent, start, forward, up, damage, 50);
+
 }
 
 void Weapon_SuperShotgun (edict_t *ent)
