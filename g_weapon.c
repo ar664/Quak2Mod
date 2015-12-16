@@ -772,13 +772,14 @@ void fire_rocket (edict_t *self, vec3_t start, vec3_t dir, int damage, int speed
 void SpearThink(edict_t *self)
 {
 	if(self->owner->deadflag || self->enemy->deadflag)
+	{
 		G_FreeEdict(self);
 		return;
-
+	}
 	VectorCopy(self->enemy->s.angles, self->s.angles);
 	VectorCopy(self->enemy->s.origin, self->s.origin);
 	T_Damage (self->enemy, world, world, vec3_origin, self->s.origin, vec3_origin, 1, 0, DAMAGE_NO_KNOCKBACK, MOD_UNKNOWN);
-	self->nextthink = level.time + 5;
+	self->nextthink = level.time + 0.1;
 }
 
 /*
@@ -830,7 +831,7 @@ void fire_rail (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick
 					spear->s.modelindex = gi.modelindex("models/objects/rocket/tris.md2"); //To be changed to a spear/monster
 					spear->owner = self;
 					spear->enemy = tr.ent;
-					spear->nextthink = level.time + level.framenum;
+					spear->nextthink = level.time + 0.1;
 					spear->think = SpearThink;
 					gi.linkentity(spear);
 

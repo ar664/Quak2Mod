@@ -1356,22 +1356,29 @@ void shotgun_melee_think(edict_t *ent)
 	VectorCopy(ent->s.angles, currentAngle);
 	//VectorAdd(up, forward, angleMove);
 	//gi.centerprintf(ent->owner,"Before: angleMove %f %f %f", angleMove[0], angleMove[1], angleMove[2]);
+	
+	//Set the angle move to -x angle, which is down
 	VectorSet(angleMove, -1, 0, 0);
 	VectorScale(angleMove, 1/speed, angleMove);
 	VectorSubtract(ent->s.angles, angleMove, ent->s.angles);
+
 	//gi.centerprintf(ent->owner,"After: angleMove %f %f %f", angleMove[0], angleMove[1], angleMove[2]);
 	//gi.centerprintf(ent->owner,"currentangle %f %f %f", currentAngle[0], currentAngle[1], currentAngle[2]);
-	//gi.centerprintf(ent->owner,"s.angles %f %f %f", ent->s.angles[0], ent->s.angles[1], ent->s.angles[2]);
+	gi.centerprintf(ent->owner,"s.angles %f %f %f", ent->s.angles[0], ent->s.angles[1], ent->s.angles[2]);
+	
+	//Update the melee weapon position
 	VectorSet(offset, 8, 8, ent->viewheight-8);
-	if (ent->s.angles == down || ent->timestamp < level.time)
+	AngleVectors(ent->owner->s.angles, forward, right, NULL);
+	P_ProjectSource (ent->owner->client, ent->owner->s.origin, offset, forward, right, ent->s.origin);
+	
+	//Make the melee weapon in line with the player
+	VectorSet(ent->s.angles, ent->s.angles[0], ent->owner->s.angles[1], ent->owner->s.angles[2]);
+	ent->nextthink = level.time + 0.1;
+	if (ent->s.angles[0] > 45 || ent->timestamp < level.time)
 	{
 		G_FreeEdict(ent);
 		return;
 	}
-	AngleVectors(ent->owner->s.angles, forward, right, NULL);
-	P_ProjectSource (ent->owner->client, ent->owner->s.origin, offset, forward, right, ent->s.origin);
-	VectorSet(ent->s.angles, ent->s.angles[0], ent->owner->s.angles[1], ent->owner->s.angles[2]);
-	ent->nextthink = level.time + 0.1;
 
 }
 
@@ -1470,7 +1477,7 @@ void weapon_railgun_fire (edict_t *ent)
 
 	if (deathmatch->value)
 	{	// normal damage is too extreme in dm
-		damage = 100;
+		damage = 10;
 		kick = 200;
 	}
 	else
